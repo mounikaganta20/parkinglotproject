@@ -3,7 +3,11 @@ package com.parkinglot.model;
 public class Slot {
     private boolean isParked;
     private Integer slotNumber;
-
+   
+    public Slot()
+    {
+    	
+    }
 
     public Slot(Integer slotNumber){
         this.slotNumber = slotNumber;

@@ -4,6 +4,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.parkinglot.exceptions.CustomException;
+import com.parkinglot.exceptions.ParkingLotException;
+import com.parkinglot.exceptions.ResourceNotFoundException;
 import com.parkinglot.model.Car;
 import com.parkinglot.model.Slot;
 import com.parkinglot.model.Token;
@@ -36,7 +39,7 @@ public class ParkingLot {
 
     }
         
-        public Token parkCar(String color, String registrationNum) throws Exception{
+        public Token parkCar(String color, String registrationNum) {
             Car car = new Car(color,registrationNum);
             if(isSlotAvailable()){
                Slot availableSlot = getTheNextFreeSlot();
@@ -44,11 +47,11 @@ public class ParkingLot {
                this.tokenForLot.add(parkingToken);
                return parkingToken;
             }else {
-          	  throw new Exception("Sorry, parking lot is full");
+            	 throw new CustomException("No Available Slot");
             }
          }
 
-    public String unParkTheCar(String token){
+    public Token unParkTheCar(String token){
         for(Token tokenInLot:tokenForLot){
             if(tokenInLot.getTokenNumber().equals(token)){
                 tokenForLot.remove(tokenInLot);
@@ -56,19 +59,20 @@ public class ParkingLot {
                 int slotNumber = slot.getSlotNumber();
                 return removeCarFromSlot(tokenInLot,slotNumber);
             }
-            return "No token found";
+            //throw new Exception("No Token found");
+            throw new CustomException("No Token found");
         }
         return null;
     }
 
-    private String removeCarFromSlot(Token token, int slotNumber) {
+    private Token removeCarFromSlot(Token token, int slotNumber) {
         for (Slot removeEntry:availableSlotList){
 
             if(removeEntry.getSlotNumber() == slotNumber){
                 removeEntry.makeSlotFree();
                 Token historyToken = token.updateCheckOutTime();
                 historyOfParking.add(historyToken);
-                return "Car entry removed";
+                return token;
             }
 
         }
@@ -82,57 +86,69 @@ public class ParkingLot {
                 return slot;
             }
         }
-        return null;
+        throw new CustomException("No Available Slot");
     }
-    public String searchCarNumber(String carNumber){
+    public Token searchCarNumber(String carNumber){
         for(Token tokenSearch:tokenForLot){
             String carDetails = tokenSearch.getCarDetails().getRegistrationNumber();
             if(carDetails.equalsIgnoreCase(carNumber)){
-                return "Token Number: " +tokenSearch.getTokenNumber()+"\nSlot Number: " +tokenSearch.getSlotDetails().getSlotNumber()+"\nCar Color: " +tokenSearch.getCarDetails().getColor();
+            	return tokenSearch;
             }
         }
-        return "Car Not Found";
+      //  throw new Exception("No car is found");
+        throw new CustomException("No car is found");
     }
-    public String searchCarColor(String colour){
+    public List<Token> searchCarColor(String colour) {
+    	List<Token> carList=new ArrayList<Token>(){};
         for(Token tokenSearch:tokenForLot){
             String carDetails = tokenSearch.getCarDetails().getColor();
             if(carDetails.equalsIgnoreCase(colour)){
-                return "Token Number: " +tokenSearch.getTokenNumber()+"\nSlot Number: " +tokenSearch.getSlotDetails().getSlotNumber()+"\nCar reg no: " +tokenSearch.getCarDetails().getRegistrationNumber();
+            	carList.add(tokenSearch);
             }
         }
-        return "Car Not Found";
+       if(carList.size()==0)
+       {
+    	  
+    	   throw new CustomException("No car is found");
+       }
+       else
+       {
+    	   return carList;
+       }
     }
-    private boolean isSlotAvailable() {
-        boolean isSlotAvailable = false;
+ 
 
-        for(Slot slot:availableSlotList){
-            if(slot.isSlotFree()){
-                isSlotAvailable = true;
-                break;
-            }
-        }
-        return isSlotAvailable;
-    }
-    public String listAllCars() throws Exception{
-        for(Token tokenSearch:tokenForLot){
-            String carDetails ="\nToken Number: " +tokenSearch.getTokenNumber()+"\nSlot Number: " +tokenSearch.getSlotDetails().getSlotNumber()+"\nCar Color: " +tokenSearch.getCarDetails().getColor();
-            return "\nToken Number: " +tokenSearch.getTokenNumber()+"\nSlot Number: " +tokenSearch.getSlotDetails().getSlotNumber()+"\nCar Color: " +tokenSearch.getCarDetails().getColor();
-        }
-       // return "No cars parked";
-        throw new Exception("No car found");
-    }
-  
+    private boolean isSlotAvailable() {
+		if(availableSlotList !=null) {
+		boolean isSlotAvailable = false;
+
+		for(Slot slot:availableSlotList){
+			if(slot.isSlotFree()){
+				isSlotAvailable = true;
+				break;
+			}
+		}
+		return isSlotAvailable;
+		}else {
+			throw new CustomException("No Available Slot");
+		}
+	}
 
     
-	public List<Token>  showListOfCarDetails() throws Exception {
+	public List<Token>  showListOfCarDetails()  {
+		if(tokenForLot.isEmpty()) {
+			throw new CustomException("Parking Lot is empty");
+		}
+		else {
 		for (Token i : tokenForLot) {
 			System.out.println("Token Number: " + i.getTokenNumber());
 			System.out.println("Slot Number: " + i.getSlotDetails().getSlotNumber());
 			System.out.println("car color: " + i.getCarDetails().getColor());
         	System.out.println("Car Number: " + i.getCarDetails().getRegistrationNumber());
 		}
-		throw new Exception("No car found");
+		return tokenForLot;
 		
+	}
 	}
 
 	

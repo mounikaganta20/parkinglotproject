@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,7 +39,7 @@ public class ParkingLotController {
 	       @PostMapping(path = "parkCar",
 		   consumes = MediaType.APPLICATION_JSON_VALUE,
 		   produces = MediaType.APPLICATION_JSON_VALUE)
-		public ResponseEntity<Object> parkCar(@RequestBody Car car) throws Exception
+		public ResponseEntity<Object> parkCar(@RequestBody Car car) 
 		{
 			return new ResponseEntity<>(parkinglot.parkCar(car.getColor(),car.getRegistrationNumber()),HttpStatus.OK);
 		}
@@ -49,28 +50,29 @@ public class ParkingLotController {
 	   }
 	  
 	  @GetMapping("/searchCarByColor/{carColors}")	 
-	  String searchColor(@PathVariable String carColors) {
-	  parkinglot.searchCarColor(carColors);
+	  List<Token> searchColor(@PathVariable String carColors)  {
 	  return parkinglot.searchCarColor(carColors);
 	  }
 	  @GetMapping("/searchCarByNum/{carNum}")
-	  String searchCarNumber(@PathVariable String carNum) {
-		  parkinglot.searchCarNumber(carNum);
+	  Token searchCarNumber(@PathVariable String carNum) {
 		  return parkinglot.searchCarNumber(carNum);
 	  }
 	 
 	   @DeleteMapping("/unParkCar")
-	     String unParkTheCar(@RequestParam("token") String token ) {
-		 String unparkcar=parkinglot.unParkTheCar(token);
+	     Token unParkTheCar(@RequestParam("token") String token )   {
+		 Token unparkcar=parkinglot.unParkTheCar(token);
 	     System.out.println(unparkcar);
 	     return unparkcar;
 	    }
 	  
-	   @GetMapping("/initiateLot")
-	    public ArrayList<Slot> initiateLot(@RequestParam("NumberOfLot") String numberOfLot){
-	        ArrayList<Slot> availableSlot= parkinglot.initializeSlot(Integer.parseInt(numberOfLot));
-	        return  availableSlot;
-	    }
+
+	   @PostMapping(path = "initiateLot",
+			   consumes = MediaType.APPLICATION_JSON_VALUE,
+			   produces = MediaType.APPLICATION_JSON_VALUE)
+			public ResponseEntity<Object> initiateLot(@RequestBody Slot slot) 
+			{
+				return new ResponseEntity<>(parkinglot.initializeSlot(slot.getSlotNumber()),HttpStatus.OK);
+			}
 
 
 }
